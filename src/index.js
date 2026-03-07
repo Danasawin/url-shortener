@@ -1,5 +1,8 @@
 const express = require('express');
-const { nanoid } = require('nanoid');
+const path = require('path');
+const { customAlphabet } = require('nanoid');
+
+const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 6);
 const redis = require('./redis');
 
 const app = express();
@@ -33,6 +36,8 @@ app.get('/r/:code', async (req, res) => {
 app.get('/health', (req, res) => {
   return res.status(200).json({ status: 'ok' });
 });
+
+app.use('/ui', express.static(path.join(__dirname, '../www')));
 
 if (require.main === module) {
   app.listen(PORT, () => {
