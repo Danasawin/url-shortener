@@ -12,7 +12,9 @@ services:
 
   app:
     # Use the image from Docker Hub
-    image: ${DOCKERHUB_USERNAME}/url-shortener:latest
+    image: danasawinptkl/url-shortener:latest
     container_name: url-shortener-app
     platform: linux/amd64
+    ports:
+      - "3000:3000"
     # { แก้ไขให้ถูกต้อง }
