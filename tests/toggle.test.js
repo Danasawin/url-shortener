@@ -9,6 +9,7 @@ const mockClient = {
   srem: jest.fn(),
   del: jest.fn(),
   ttl: jest.fn(),
+  
 };
 
 jest.mock('ioredis', () => jest.fn(() => mockClient));

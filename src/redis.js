@@ -53,29 +53,42 @@ const redis = {
     } catch { /* ignore */ }
   },
 
-  async list() {
-    const codes = await client.smembers(CODES_SET);
-    if (!codes.length) return [];
+ async list() {
+  const codes = await client.smembers(CODES_SET);
+  if (!codes.length) return [];
 
-    const entries = await Promise.all(codes.map(async (code) => {
-      const raw = await client.get(code);
-      if (!raw) {
-        await client.srem(CODES_SET, code); // clean up expired
-        return null;
-      }
-      try {
-        const { url, createdAt, clicks } = JSON.parse(raw);
-        return { code, url, createdAt, clicks: clicks || 0 };
-      } catch {
-        return { code, url: raw, createdAt: null, clicks: 0 };
-      }
-    }));
+  const entries = await Promise.all(codes.map(async (code) => {
+    const raw = await client.get(code);
+    if (!raw) {
+      await client.srem(CODES_SET, code);
+      return null;
+    }
 
-    return entries
-      .filter(Boolean)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  },
+    try {
+      const parsed = JSON.parse(raw);
 
+      return {
+        code,
+        url: parsed.url,
+        createdAt: parsed.createdAt,
+        clicks: parsed.clicks || 0,
+        enabled: typeof parsed.enabled === 'boolean' ? parsed.enabled : true // ⭐ FIX
+      };
+    } catch {
+      return {
+        code,
+        url: raw,
+        createdAt: null,
+        clicks: 0,
+        enabled: true // ⭐ default for old data
+      };
+    }
+  }));
+
+  return entries
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+},
   async del(code) {
     const result = await client.del(code);
     await client.srem(CODES_SET, code);
